@@ -11,11 +11,13 @@ import java.net.Socket;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.HashMap;
 import java.util.Map;
 import model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.HttpRequestUtils;
+import util.IOUtils;
 
 public class RequestHandler extends Thread {
     private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
@@ -38,10 +40,21 @@ public class RequestHandler extends Thread {
                 return;
             }
             String url = HttpRequestUtils.getUrl(line);
+            final Map<String, String> headers = new HashMap<>();
+            while (!"".equals(line)) {
+                log.debug("header: {}", line);
+                line = bufferedReader.readLine();
+                final String[] headerTokens = line.split(": ");
+                if (headerTokens.length == 2) {
+                    headers.put(headerTokens[0], headerTokens[1]);
+                }
+            }
+            log.debug("Content-Length: {}", headers.get("Content-Length"));
             if (url.startsWith("/user/create")) {
-                final int index = url.indexOf('?');
-                final String queryString = url.substring(index + 1);
-                final Map<String, String> params = HttpRequestUtils.parseQueryString(queryString);
+                final String requestBody = IOUtils
+                    .readData(bufferedReader, Integer.parseInt(headers.get("Content-Length")));
+                log.debug("Request Body: {}", requestBody);
+                final Map<String, String> params = HttpRequestUtils.parseQueryString(requestBody);
                 final User user = new User(params.get("userId"), params.get("password"),
                     params.get("name"), params.get("email"));
                 log.debug("User: {}", user);
