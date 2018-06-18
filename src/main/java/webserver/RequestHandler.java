@@ -11,6 +11,8 @@ import java.net.Socket;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Map;
+import model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.HttpRequestUtils;
@@ -35,7 +37,16 @@ public class RequestHandler extends Thread {
             if (line == null) {
                 return;
             }
-            final String url = HttpRequestUtils.getUrl(line);
+            String url = HttpRequestUtils.getUrl(line);
+            if (url.startsWith("/user/create")) {
+                final int index = url.indexOf('?');
+                final String queryString = url.substring(index + 1);
+                final Map<String, String> params = HttpRequestUtils.parseQueryString(queryString);
+                final User user = new User(params.get("userId"), params.get("password"),
+                    params.get("name"), params.get("email"));
+                log.debug("User: {}", user);
+                url = "/index.html";
+            }
             DataOutputStream dos = new DataOutputStream(out);
             final byte[] body = Files.readAllBytes(new File("./webapp" + url).toPath());
             response200Header(dos, body.length);
