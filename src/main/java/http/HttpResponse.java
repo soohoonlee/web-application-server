@@ -22,30 +22,55 @@ public class HttpResponse {
     dataOutputStream = new DataOutputStream(outputStream);
   }
 
+  public void addHeader(final String key, final String value) {
+    headers.put(key, value);
+  }
+
   public void forward(final String url) throws IOException {
     byte[] body = Files.readAllBytes(new File("./webapp" + url).toPath());
-    headers.put("Content-Type", "text/html;charset=utf-8");
-    headers.put("Content-Length", body.length + "");
-
-    dataOutputStream.writeBytes("HTTP/1.1 200 OK \r\n");
-    final Set<String> keys = headers.keySet();
-    for (final String key : keys) {
-      dataOutputStream.writeBytes(key + ": " + headers.get(key) + " \r\n");
+    if (url.endsWith(".css")) {
+      headers.put("Content-Type", "text/css");
+    } else if (url.endsWith(".js")) {
+      headers.put("Content-Type", "application/javascript");
+    } else {
+      headers.put("Content-Type", "text/html;charset=utf-8");
     }
-    dataOutputStream.writeBytes("\r\n");
+    headers.put("Content-Length", body.length + "");
+    response200Header();
+    responseBody(body);
+  }
+
+  public void forwardBody(final String body) throws IOException {
+    final byte[] contents = body.getBytes();
+    headers.put("Content-Type", "text/html;charset=utf-8");
+    headers.put("Content-Length", contents.length + "");
+    response200Header();
+    responseBody(contents);
   }
 
   public void sendRedirect(final String redirectUrl) throws IOException {
     dataOutputStream.writeBytes("HTTP/1.1 302 Redirect \r\n");
-    final Set<String> keys = headers.keySet();
-    for (final String key : keys) {
-      dataOutputStream.writeBytes(key + ": " + headers.get(key) + " \r\n");
-    }
+    processHeaders();
     dataOutputStream.writeBytes("Location: " + redirectUrl + " \r\n");
     dataOutputStream.writeBytes("\r\n");
   }
 
-  public void addHeader(final String key, final String value) {
-    headers.put(key, value);
+  private void processHeaders() throws IOException {
+    final Set<String> keys = headers.keySet();
+    for (final String key: keys) {
+      dataOutputStream.writeBytes(key + ": " + headers.get(key) + " \r\n");
+    }
+  }
+
+  private void response200Header() throws IOException {
+    dataOutputStream.writeBytes("HTTP/1.1 200 OK \r\n");
+    processHeaders();
+    dataOutputStream.writeBytes("\r\n");
+  }
+
+  private void responseBody(final byte[] body) throws IOException {
+    dataOutputStream.write(body, 0, body.length);
+    dataOutputStream.writeBytes("\r\n");
+    dataOutputStream.flush();
   }
 }

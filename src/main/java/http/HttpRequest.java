@@ -1,5 +1,6 @@
 package http;
 
+import static http.HttpMethod.*;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.BufferedReader;
@@ -17,18 +18,17 @@ public class HttpRequest {
 
   private static final Logger log = LoggerFactory.getLogger(HttpRequest.class);
 
-  private String method;
-  private String path;
   private final Map<String, String> headers = new HashMap<>();
-  private Map<String, String> params = new HashMap<>();
+  private Map<String, String> params;
+  private RequestLine requestLine;
 
   public HttpRequest(final InputStream in) throws IOException {
     final BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(in, UTF_8));
     String line = bufferedReader.readLine();
     if (line == null) {
-      return;
+      throw new IllegalArgumentException("값이 없습니다.");
     }
-    processRequestLine(line);
+    requestLine = new RequestLine(line);
 
     line = bufferedReader.readLine();
     while (!line.equals("")) {
@@ -37,41 +37,22 @@ public class HttpRequest {
       headers.put(tokens[0].trim(), tokens[1].trim());
       line = bufferedReader.readLine();
     }
-    if ("POST".equals(method)) {
+    if (getMethod().isPost()) {
       final String body = IOUtils
           .readData(bufferedReader, Integer.parseInt(headers.get("Content-Length")));
       params = HttpRequestUtils.parseQueryString(body);
       log.debug("body : {}", params);
-    }
-  }
-
-  private void processRequestLine(final String requestLine) {
-    log.debug("request line : {}", requestLine);
-    final String[] tokens = requestLine.split(" ");
-    method = tokens[0];
-
-    if ("POST".equals(method)) {
-      path = tokens[1];
-      return;
-    }
-
-    final int index = tokens[1].indexOf('?');
-    log.debug("index : {}", index);
-    if (index == -1) {
-      path = tokens[1];
     } else {
-      path = tokens[1].substring(0, index);
-      params = HttpRequestUtils.parseQueryString(tokens[1].substring(index + 1));
+      params = requestLine.getParams();
     }
-    log.debug("path : {}", path);
   }
 
-  public String getMethod() {
-    return method;
+  public HttpMethod getMethod() {
+    return requestLine.getMethod();
   }
 
   public String getPath() {
-    return path;
+    return requestLine.getPath();
   }
 
   public String getHeader(final String name) {

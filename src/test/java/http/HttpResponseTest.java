@@ -1,6 +1,5 @@
-package util;
+package http;
 
-import http.HttpResponse;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -10,7 +9,17 @@ import org.junit.Test;
 
 public class HttpResponseTest {
 
-  private final String testDirectory = "./src/test/resources/";
+  @Test
+  public void responseCSS() throws IOException {
+    final HttpResponse response = new HttpResponse(createOutputStream("Http_Forward.txt"));
+    response.forward("/css/styles.css");
+  }
+
+  @Test
+  public void responseJS() throws IOException {
+    final HttpResponse response = new HttpResponse(createOutputStream("Http_Forward.txt"));
+    response.forward("/js/scripts.js");
+  }
 
   @Test
   public void responseForward() throws IOException {
@@ -32,6 +41,7 @@ public class HttpResponseTest {
   }
 
   private OutputStream createOutputStream(final String fileName) throws FileNotFoundException {
+    final String testDirectory = "./src/test/resources/";
     return new FileOutputStream(new File(testDirectory + fileName));
   }
 }
