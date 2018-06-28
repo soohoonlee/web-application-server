@@ -8,12 +8,12 @@ import java.util.Map;
 import model.User;
 import util.HttpRequestUtils;
 
-public class ListUserController implements Controller {
+public class ListUserController extends AbstractController {
 
   @Override
-  public void service(final HttpRequest httpRequest, final HttpResponse httpResponse) {
-    if (!isLogin(httpRequest.getHeader("Cookie"))) {
-      httpResponse.sendRedirect("/user/login.html");
+  protected void doGet(final HttpRequest request, final HttpResponse response) {
+    if (!isLogin(request.getHeader("Cookie"))) {
+      response.sendRedirect("/user/login.html");
       return;
     }
     Collection<User> users = DataBase.findAll();
@@ -27,7 +27,7 @@ public class ListUserController implements Controller {
       sb.append("</tr>");
     }
     sb.append("</table>");
-    httpResponse.forwardBody(sb.toString());
+    response.forwardBody(sb.toString());
   }
 
   private boolean isLogin(String line) {

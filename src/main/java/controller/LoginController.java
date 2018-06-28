@@ -5,20 +5,21 @@ import http.HttpRequest;
 import http.HttpResponse;
 import model.User;
 
-public class LoginController implements Controller {
+public class LoginController extends AbstractController {
 
   @Override
-  public void service(final HttpRequest httpRequest, final HttpResponse httpResponse) {
-    User user = DataBase.findUserById(httpRequest.getParameter("userId"));
+  protected void doPost(final HttpRequest request, final HttpResponse response) {
+    User user = DataBase.findUserById(request.getParameter("userId"));
     if (user != null) {
-      if (user.login(httpRequest.getParameter("password"))) {
-        httpResponse.addHeader("Set-Cookie", "logined=true");
-        httpResponse.sendRedirect("/index.html");
+      if (user.login(request.getParameter("password"))) {
+        response.addHeader("Set-Cookie", "logined=true");
+        response.sendRedirect("/index.html");
       } else {
-        httpResponse.sendRedirect("/user/login_failed.html");
+        response.sendRedirect("/user/login_failed.html");
       }
     } else {
-      httpResponse.sendRedirect("/user/login_failed.html");
+      response.sendRedirect("/user/login_failed.html");
     }
   }
+
 }
