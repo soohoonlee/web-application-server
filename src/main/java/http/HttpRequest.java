@@ -1,6 +1,5 @@
 package http;
 
-import static http.HttpMethod.*;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.BufferedReader;

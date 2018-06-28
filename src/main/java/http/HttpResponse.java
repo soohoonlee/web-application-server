@@ -26,51 +26,71 @@ public class HttpResponse {
     headers.put(key, value);
   }
 
-  public void forward(final String url) throws IOException {
-    byte[] body = Files.readAllBytes(new File("./webapp" + url).toPath());
-    if (url.endsWith(".css")) {
-      headers.put("Content-Type", "text/css");
-    } else if (url.endsWith(".js")) {
-      headers.put("Content-Type", "application/javascript");
-    } else {
+  public void forward(final String url) {
+    try {
+      byte[] body = Files.readAllBytes(new File("./webapp" + url).toPath());
+      if (url.endsWith(".css")) {
+        headers.put("Content-Type", "text/css");
+      } else if (url.endsWith(".js")) {
+        headers.put("Content-Type", "application/javascript");
+      } else {
+        headers.put("Content-Type", "text/html;charset=utf-8");
+      }
+      headers.put("Content-Length", body.length + "");
+      response200Header();
+      responseBody(body);
+    } catch (IOException e) {
+      log.error(e.getMessage());
+    }
+  }
+
+  public void forwardBody(final String body) {
+      final byte[] contents = body.getBytes();
       headers.put("Content-Type", "text/html;charset=utf-8");
-    }
-    headers.put("Content-Length", body.length + "");
-    response200Header();
-    responseBody(body);
+      headers.put("Content-Length", contents.length + "");
+      response200Header();
+      responseBody(contents);
   }
 
-  public void forwardBody(final String body) throws IOException {
-    final byte[] contents = body.getBytes();
-    headers.put("Content-Type", "text/html;charset=utf-8");
-    headers.put("Content-Length", contents.length + "");
-    response200Header();
-    responseBody(contents);
-  }
-
-  public void sendRedirect(final String redirectUrl) throws IOException {
-    dataOutputStream.writeBytes("HTTP/1.1 302 Redirect \r\n");
-    processHeaders();
-    dataOutputStream.writeBytes("Location: " + redirectUrl + " \r\n");
-    dataOutputStream.writeBytes("\r\n");
-  }
-
-  private void processHeaders() throws IOException {
-    final Set<String> keys = headers.keySet();
-    for (final String key: keys) {
-      dataOutputStream.writeBytes(key + ": " + headers.get(key) + " \r\n");
+  public void sendRedirect(final String redirectUrl) {
+    try {
+      dataOutputStream.writeBytes("HTTP/1.1 302 Redirect \r\n");
+      processHeaders();
+      dataOutputStream.writeBytes("Location: " + redirectUrl + " \r\n");
+      dataOutputStream.writeBytes("\r\n");
+    } catch (IOException e) {
+      log.error(e.getMessage());
     }
   }
 
-  private void response200Header() throws IOException {
-    dataOutputStream.writeBytes("HTTP/1.1 200 OK \r\n");
-    processHeaders();
-    dataOutputStream.writeBytes("\r\n");
+  private void processHeaders() {
+    try {
+      final Set<String> keys = headers.keySet();
+      for (final String key: keys) {
+        dataOutputStream.writeBytes(key + ": " + headers.get(key) + " \r\n");
+      }
+    } catch (IOException e) {
+      log.error(e.getMessage());
+    }
   }
 
-  private void responseBody(final byte[] body) throws IOException {
-    dataOutputStream.write(body, 0, body.length);
-    dataOutputStream.writeBytes("\r\n");
-    dataOutputStream.flush();
+  private void response200Header() {
+    try {
+      dataOutputStream.writeBytes("HTTP/1.1 200 OK \r\n");
+      processHeaders();
+      dataOutputStream.writeBytes("\r\n");
+    } catch (IOException e) {
+      log.error(e.getMessage());
+    }
+  }
+
+  private void responseBody(final byte[] body) {
+    try {
+      dataOutputStream.write(body, 0, body.length);
+      dataOutputStream.writeBytes("\r\n");
+      dataOutputStream.flush();
+    } catch (IOException e) {
+      log.error(e.getMessage());
+    }
   }
 }

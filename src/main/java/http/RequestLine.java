@@ -1,7 +1,5 @@
 package http;
 
-import static http.HttpMethod.POST;
-
 import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
