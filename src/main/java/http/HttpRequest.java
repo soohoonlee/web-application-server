@@ -4,10 +4,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import util.IOUtils;
 
 public class HttpRequest {
@@ -50,6 +48,10 @@ public class HttpRequest {
 
 	public HttpMethod getMethod() {
 		return requestLine.getMethod();
+	}
+
+	public HttpCookie getCookie() {
+		return new HttpCookie(getHeader("Cookie"));
 	}
 
 	public String getPath() {
