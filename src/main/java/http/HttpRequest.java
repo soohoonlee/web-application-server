@@ -50,9 +50,13 @@ public class HttpRequest {
 		return requestLine.getMethod();
 	}
 
-	public HttpCookie getCookie() {
+	public HttpCookie getCookies() {
 		return new HttpCookie(getHeader("Cookie"));
 	}
+
+	public HttpSession getSession() {
+	  return HttpSessions.getSession(getCookies().getCookie("JSESSIONID"));
+  }
 
 	public String getPath() {
 		return requestLine.getPath();
